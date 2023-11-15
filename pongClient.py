@@ -86,7 +86,18 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # Your code here to send an update to the server on your paddle's information,
         # where the ball is and the current score.
         # Feel free to change when the score is updated to suit your needs/requirements
-        
+
+        # i dont think the score should be updated here, i think it should only be updated by the client that is ahead
+        values = {
+            'side' : playerPaddle,
+            'paddlePos' : playerPaddle.Rect,
+            'ballPos' : ball.Rect,
+            'scores' : (lScore,rScore) # this may need to be changed but im not sure
+        }
+
+        json_data = json.dumps(values) # covnert values to JSON string
+        client.sendall(json_data.encode()) # Send the JSON data to the client
+
         
         # =========================================================================================
 
@@ -158,6 +169,21 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # =========================================================================================
         # Send your server update here at the end of the game loop to sync your game with your
         # opponent's game
+
+        # this JSON will also send the sync var
+        values = {
+            'side' : playerPaddle, # this may not be used, not sure yet
+            'paddlePos' : playerPaddle.Rect,
+            'ballPos' : ball.Rect,
+            'scores' : (lScore,rScore), # this may need to be changed but im not sure
+            'sync' : sync
+        }
+
+        json_data = json.dumps(values) # covnert values to JSON string
+        client.sendall(json_data.encode()) # Send the JSON data to the client
+
+        # wait for server to talk back with the clients data that is more updated, then set vals
+        #
 
         # =========================================================================================
 

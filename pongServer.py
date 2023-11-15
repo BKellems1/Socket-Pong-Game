@@ -20,6 +20,7 @@ import json
 
 # clients need to be updated based on: score, ball position and enemy position
 
+PACKAGESIZE = 1024 # i dont know if this is a good approach but it prevents maaaggiiiccc numberrss
 server_address = ("localhost",59417)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      # Creating the server
@@ -52,7 +53,7 @@ def sendInitData(conn, side):
 
 
 def threaded_client(conn, side):
-    conn.send(str.encode("Connected!"))
+    conn.send(str.encode("Connected!")) # not necessary but i left it since it doesnt hurt anything really
     sendInitData(conn,side)
 
     reply = ""
@@ -61,8 +62,22 @@ def threaded_client(conn, side):
         # this dict will have (screen width, height & player paddle, "left or "right) in it. 
         # for testing purposes brandon, have the the client print out all the values
         try:
-            data = conn.recv(1024) # larger size = more time to recv info
-            reply = data.decode("utf-8")
+            # the data recv should be the JSON with values
+            # data = conn.recv(PACKAGESIZE) # larger size = more time to recv info
+            # reply = data.decode("utf-8")
+
+            # i am confused by this part, should the update json be 
+            # different than the sync json? of should we treat both dicts the same
+            # also if the json is nonsync then does it really matter if the server
+            # understands the data? or can we just forward it to the other client?
+
+            jsonData = conn.recv(PACKAGESIZE).decode()
+            data = json.loads(jsonData)
+            paddlePos = data['paddlePos']
+            ballPos = data['ballPos']
+            scores = data['scores']
+
+            # need some way of comparing threadedClient1 to threadedClient2
 
             if not data:
                 print("disconnect")
@@ -104,7 +119,11 @@ while True: # coninuosly look for connections
     right_player_thread = threading.Thread(target=threaded_client, args=(right_player_conn, 'right'))
     right_player_thread.start()
 
+    # i am not sure if we can access thread1 and thread2 json data down here?
 
+
+
+# this is the potential code for having many client games
 # def start_new_game(conn):
 #     # Start a new game thread for each client
 #     player_position = 'Left' if len(games) % 2 == 0 else 'Right'
@@ -121,17 +140,7 @@ while True: # coninuosly look for connections
 #     start_new_game(client_conn)
 
 
-# message = clientConn.recv(1024)               # Expect "Hello Server"
 
-# print(f"Client sent: {message.decode()}")
-
-# clientConn.send("Hello client.".encode())
-
-# msg = ""
-# while msg != "quit":
-#     msg = clientConn.recv(1024).decode()          # Received message from client
-#     print(f"Client sent: {msg}")
-#     clientConn.send(msg.encode())
 
 
 
