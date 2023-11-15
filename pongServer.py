@@ -23,6 +23,7 @@ import json
 PACKAGESIZE = 1024 # i dont know if this is a good approach but it prevents maaaggiiiccc numberrss
 server_address = ("localhost",59417)
 
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      # Creating the server
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    # Working on localhost need this
 
@@ -51,10 +52,21 @@ def sendInitData(conn, side):
     conn.sendall(json_data.encode())
 
 
+playerNum_lock = threading.Lock()
+
+playerStates = [] # this is used to store and access data from players
+playerNum = 0 # used in the states logic
 
 def threaded_client(conn, side):
     conn.send(str.encode("Connected!")) # not necessary but i left it since it doesnt hurt anything really
     sendInitData(conn,side)
+    with playerNum_lock:
+        clientPlayer = playerNum # this will be the slot in playerState hat this thread writes to
+        playerNum += 1
+    
+    playerStates.append([]) # create a spot in playerStates to store their data
+
+
 
     reply = ""
     while True: # server loop
@@ -78,16 +90,15 @@ def threaded_client(conn, side):
             # ballPos = data['ballPos']
             # scores = data['scores']
 
-            # need some way of comparing threadedClient1 to threadedClient2
 
             if not data:
                 print("disconnect")
                 break
-            else:
-                print("Received: ", reply)
-                print("sending: ", reply)
 
-            conn.sendall(str.encode(reply))
+            with playerNum_lock: # this should only be reached if there is data sent
+                playerStates[clientPlayer] = data
+
+            # conn.sendall(str.encode(reply))
         except:
             break
 
@@ -120,6 +131,8 @@ while True: # coninuosly look for connections
     right_player_thread = threading.Thread(target=threaded_client, args=(right_player_conn, 'right'))
     right_player_thread.start()
 
+    
+
     # i am not sure if we can access thread1 and thread2 json data down here?
 
 
@@ -139,6 +152,70 @@ while True: # coninuosly look for connections
 
 #     # Start a new game for the connected client
 #     start_new_game(client_conn)
+
+# Maintain a list of connected client pairs and a lock to synchronize access to it
+# client_pairs = []
+# client_pairs_lock = threading.Lock()
+
+# def broadcast_data(sender_index, data):
+#     global client_pairs
+
+#     # Find the pair for the sender and send data only to that pair
+#     with client_pairs_lock:
+#         sender_pair = None
+#         for pair in client_pairs:
+#             if sender_index in pair:
+#                 sender_pair = pair
+#                 break
+
+#         if sender_pair:
+#             for i in sender_pair:
+#                 if i != sender_index:
+#                     try:
+#                         sender_pair[i].sendall(json.dumps(data).encode())
+#                     except Exception as e:
+#                         print(f"Error sending data to client {i}: {e}")
+
+# # Modify your threaded_client function to store the client's index and pair
+# def threaded_client(conn, index, pair):
+#     # existing code
+
+#     while True:
+#         try:
+#             jsonData = conn.recv(PACKAGESIZE)
+#             data = json.loads(jsonData.decode())
+
+#             if not data:
+#                 print("disconnect")
+#                 break
+#             else:
+#                 print("Received: ", data)
+
+#             # Broadcast the received data to the corresponding partner
+#             broadcast_data(index, data)
+
+#             conn.sendall(str.encode(reply))
+#         except:
+#             break
+
+# # Modify your main server loop to pair up clients
+# while True:
+#     client_conn, client_address = server.accept()
+#     print("Player Connected to: ", client_address)
+
+#     # Add the new client to the list and pair it with the previous client
+#     with client_pairs_lock:
+#         if not client_pairs or len(client_pairs[-1]) == 2:
+#             client_pairs.append([client_conn])
+#         else:
+#             client_pairs[-1].append(client_conn)
+
+#         pair = client_pairs[-1]
+#         index = len(pair) - 1
+
+#         client_thread = threading.Thread(target=threaded_client, args=(client_conn, index, pair))
+#         client_thread.start()
+
 
 
 
