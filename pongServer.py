@@ -71,11 +71,12 @@ def threaded_client(conn, side):
             # also if the json is nonsync then does it really matter if the server
             # understands the data? or can we just forward it to the other client?
 
-            jsonData = conn.recv(PACKAGESIZE).decode()
-            data = json.loads(jsonData)
-            paddlePos = data['paddlePos']
-            ballPos = data['ballPos']
-            scores = data['scores']
+            jsonData = conn.recv(PACKAGESIZE)
+            data = json.loads(jsonData.decode())
+            # side = data['side']
+            # paddlePos = data['paddlePos']
+            # ballPos = data['ballPos']
+            # scores = data['scores']
 
             # need some way of comparing threadedClient1 to threadedClient2
 

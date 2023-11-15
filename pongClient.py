@@ -98,6 +98,14 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         json_data = json.dumps(values) # covnert values to JSON string
         client.sendall(json_data.encode()) # Send the JSON data to the client
 
+        otherPlayer = client.recv(1024).decode()
+        data = json.loads(otherPlayer)
+        # leftPaddle.Rect(data['paddlePos'][0],data['paddlePos'][1])
+        if data['side'] is 'right':
+            leftPaddle = Paddle(pygame.Rect(data['paddlePos'][0],data['paddlePos'][1], paddleWidth, paddleHeight))
+        else: 
+            rightPaddle = Paddle(pygame.Rect(data['paddlePos'][0],data['paddlePos'][1], paddleWidth, paddleHeight))
+
         
         # =========================================================================================
 
