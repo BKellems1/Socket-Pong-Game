@@ -12,6 +12,8 @@ import sys
 import socket
 
 from assets.code.helperCode import *
+from dummyClient import Client
+
 
 # This is the main game loop.  For the most part, you will not need to modify this.  The sections
 # where you should add to the code are marked.  Feel free to change any part of this project
@@ -160,6 +162,14 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
 
 
 
+def readPos(str):
+    str = str.split(",")
+    return int(str[0],str[1])
+
+
+def makePos(tup):
+    return str(tup[0] + ", " + str(tup[1]))
+
 
 # This is where you will connect to the server to get the info required to call the game loop.  Mainly
 # the screen width, height and player paddle (either "left" or "right")
@@ -173,22 +183,44 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     # errorLabel    A tk label widget, modify it's text to display messages to the user (example below)
     # app           The tk window object, needed to kill the window
     
+    # n = Network()
+    # startPos = n.getPos()
+    # p = player
+
+
     # Create a socket and connect to the server
     # You don't have to use SOCK_STREAM, use what you think is best
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client = Client()
+    client.server = ip
+    client.port = port
+
+    # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # client.connect((ip,int(port)))
+    # client.send(str.encode("joined")) # tell the server that a client has joined
+    client.send("im here")
+    # client first needs to recieve the data for the screen size
+    game_settings = client.recv()
 
     # Get the required information from your server (screen width, height & player paddle, "left or "right)
-
+    # client needs to listen to server
 
     # If you have messages you'd like to show the user use the errorLabel widget like so
     errorLabel.config(text=f"Some update text. You input: IP: {ip}, Port: {port}")
     # You may or may not need to call this, depending on how many times you update the label
     errorLabel.update()     
 
+    startPos = readPos(client.getPos())
+
+
+    # if first then be player 1, so left side
+    # What should be sent to the server?
+    # position bounce/score
+
     # Close this window and start the game with the info passed to you from the server
-    #app.withdraw()     # Hides the window (we'll kill it later)
-    #playGame(screenWidth, screenHeight, ("left"|"right"), client)  # User will be either left or right paddle
-    #app.quit()         # Kills the window
+    app.withdraw()     # Hides the window (we'll kill it later)
+    playGame(screenWidth, screenHeight, ("left"|"right"), client)  # User will be either left or right paddle
+    app.quit()         # Kills the window
 
 
 # This displays the opening screen, you don't need to edit this (but may if you like)
@@ -222,9 +254,10 @@ def startScreen():
     app.mainloop()
 
 if __name__ == "__main__":
-    #startScreen()
+    startScreen() # this is the start connect window
+
     
     # Uncomment the line below if you want to play the game without a server to see how it should work
     # the startScreen() function should call playGame with the arguments given to it by the server this is
     # here for demo purposes only
-    playGame(640, 480,"left",socket.socket(socket.AF_INET, socket.SOCK_STREAM))
+    # playGame(640, 480,"left",socket.socket(socket.AF_INET, socket.SOCK_STREAM))
