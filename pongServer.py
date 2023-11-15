@@ -95,13 +95,13 @@ while True: # coninuosly look for connections
     # Accept the first player as the left player
     left_player_conn, left_player_address = server.accept()
     print("Left Player Connected to: ", left_player_address)
-    left_player_thread = threading.Thread(target=threaded_client, args=(left_player_conn, 'Left'))
+    left_player_thread = threading.Thread(target=threaded_client, args=(left_player_conn, 'left'))
     left_player_thread.start()
 
     # Accept the second player as the right player
     right_player_conn, right_player_address = server.accept()
     print("Right Player Connected to: ", right_player_address)
-    right_player_thread = threading.Thread(target=threaded_client, args=(right_player_conn, 'Right'))
+    right_player_thread = threading.Thread(target=threaded_client, args=(right_player_conn, 'right'))
     right_player_thread.start()
 
 

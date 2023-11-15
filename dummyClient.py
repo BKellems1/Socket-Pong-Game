@@ -1,5 +1,6 @@
 import socket
 import json
+import pygame
 
 
 class Client:
@@ -8,7 +9,7 @@ class Client:
         self.server = "localhost"
         self.port = 59417
         self.addr = (self.server, self.port)
-        self.pos = self.connect()
+        self.connect()
         # self.id = self.connect()
         # print(self.id)
     
@@ -30,17 +31,17 @@ class Client:
             print(e)
 
 
-n = Client()
-jsonData = n.client.recv(1024).decode()
-data = json.loads(jsonData)
-screenHeight = data['screenHeight']
-screenWidth = data['screenWidth']
-side = data['side']
+# n = Client()
+# jsonData = n.client.recv(1024).decode()
+# data = json.loads(jsonData)
+# screenHeight = data['screenHeight']
+# screenWidth = data['screenWidth']
+# side = data['side']
 
-print('Screen Width:', screenWidth)
-print('Screen Height:', screenHeight)
-print('Player Position:', side)
-n.close()
+# print('Screen Width:', screenWidth)
+# print('Screen Height:', screenHeight)
+# print('Player Position:', side)
+# n.close()
 # print(n.send("hello"))
 # print(n.send("world"))
 
