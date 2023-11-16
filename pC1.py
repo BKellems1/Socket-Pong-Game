@@ -11,7 +11,9 @@ import tkinter as tk
 import sys
 import socket
 import json
+import threading
 
+Lock = threading.Lock()
 from assets.code.helperCode import *
 from dummyClient import Client
 
@@ -161,6 +163,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # =========================================================================================
         # Send your server update here at the end of the game loop to sync your game with your
         # opponent's game
+        Lock.acquire()
         values = {
             'side' : playerPaddle,
             'paddlePos' : playerPaddleObj.rect.y,
@@ -168,21 +171,21 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             'scores' : [lScore,rScore], # this may need to be changed but im not sure
             'sync' : sync
         }
-
         json_data = json.dumps(values) # covnert values to JSON string
         client.client.send(json_data.encode()) # Send the JSON data to the client
         # this JSON will also send the sync var
-
+        Lock.release()
 
         # wait for server to talk back with the clients data that is more updated, then set vals
         #
         values = client.client.recv(1024).decode()
         json_data = json.loads(json.loads(values))
         if sync < json_data['sync']:
-            playerPaddleObj.rect.y = json_data['paddlePos']
+            opponentPaddleObj.rect.y = json_data['paddlePos']
             ball.rect.x = json_data['ballPos'][0]
             ball.rect.y = json_data['ballPos'][1]
             lScore, rScore = json_data['scores']
+        
         # =========================================================================================
 
 

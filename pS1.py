@@ -66,12 +66,11 @@ def threaded_client(conn, side):
         # for testing purposes brandon, have the the client print out all the values
         try:
             # the data recv should be the JSON with values
-
+            Lock.acquire()
             # i am confused by this part, should the update json be 
             # different than the sync json? of should we treat both dicts the same
             # also if the json is nonsync then does it really matter if the server
             # understands the data? or can we just forward it to the other client?
-            Lock.acquire()
             jsonData = conn.recv(PACKAGESIZE)
             print("received ", jsonData, "\n")
             reply = json.dumps(jsonData.decode())
@@ -84,10 +83,9 @@ def threaded_client(conn, side):
             if not reply:
                 print("disconnect")
                 break
-            print("sending ", reply, "to", conn, "\n")
             for conns in connections:
+                print("sending ", reply, "to", conns, "\n")
                 conns.sendall(reply.encode())
-            
             Lock.release()
 
         except:
@@ -102,21 +100,22 @@ def threaded_client(conn, side):
 
 
 while True: # continuously look for connections
-
+    numConnects = []
     # Accept the first player as the left player
-    left_player_conn, left_player_address = server.accept()
-    print("Left Player Connected to: ", left_player_address)
-    left_player_thread = threading.Thread(target=threaded_client, args=(left_player_conn, 'left'))
-    left_player_thread.start()
+    while(len(numConnects) < 2):
+        left_player_conn, left_player_address = server.accept()
+        print("Left Player Connected to: ", left_player_address)
+        left_player_thread = threading.Thread(target=threaded_client, args=(left_player_conn, 'left'))
+        numConnects.append(left_player_thread)
 
     # Accept the second player as the right player
-    right_player_conn, right_player_address = server.accept()
-    print("Right Player Connected to: ", right_player_address)
-    right_player_thread = threading.Thread(target=threaded_client, args=(right_player_conn, 'right'))
+        right_player_conn, right_player_address = server.accept()
+        print("Right Player Connected to: ", right_player_address)
+        right_player_thread = threading.Thread(target=threaded_client, args=(right_player_conn, 'right'))
+        numConnects.append(right_player_thread)
+
+    left_player_thread.start()
     right_player_thread.start()
-
-    
-
     # i am not sure if we can access thread1 and thread2 json data down here?
 
 
