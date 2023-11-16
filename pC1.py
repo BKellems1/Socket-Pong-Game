@@ -89,8 +89,6 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # where the ball is and the current score.
         # Feel free to change when the score is updated to suit your needs/requirements
 
-        # i dont think the score should be updated here, i think it should only be updated by the client that is ahead
-
 
         
         # =========================================================================================
@@ -105,7 +103,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
                     paddle.rect.y -= paddle.speed
 
         # If the game is over, display the win message
-        if lScore > 4 or rScore > 4:
+        if lScore > 9 or rScore > 9:
             winText = "Player 1 Wins! " if lScore > 4 else "Player 2 Wins! "
             textSurface = winFont.render(winText, False, WHITE, (0,0,0))
             textRect = textSurface.get_rect()
@@ -163,7 +161,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # =========================================================================================
         # Send your server update here at the end of the game loop to sync your game with your
         # opponent's game
-        Lock.acquire()
+        
         values = {
             'side' : playerPaddle,
             'paddlePos' : playerPaddleObj.rect.y,
@@ -174,17 +172,20 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         json_data = json.dumps(values) # covnert values to JSON string
         client.client.send(json_data.encode()) # Send the JSON data to the client
         # this JSON will also send the sync var
-        Lock.release()
+        
 
         # wait for server to talk back with the clients data that is more updated, then set vals
         #
         values = client.client.recv(1024).decode()
         json_data = json.loads(values)
-        if sync < json_data['sync']:
-            opponentPaddleObj.rect.y = json_data['paddlePos']
-            ball.rect.x = json_data['ballPos'][0]
-            ball.rect.y = json_data['ballPos'][1]
-            lScore, rScore = json_data['scores']
+        # Note: Below doesn't actually update the game as anticipated. :(
+        opponentPaddleObj.rect.y = json_data['paddlePos']
+        ball.rect.x = json_data['ballPos'][0]
+        ball.rect.y = json_data['ballPos'][1]
+        ball.updatePos()
+        lScore, rScore = json_data['scores']
+        scoreRect = updateScore(lScore, rScore, screen, WHITE, scoreFont)
+        pygame.display.update()
         
         # =========================================================================================
 

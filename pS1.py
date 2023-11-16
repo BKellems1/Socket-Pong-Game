@@ -84,14 +84,15 @@ def threaded_client(conn, side):
                 break
             
             if reply['side'] == "left":
-
+                # in my head if the reply side is left you have to send left's data to
+                # the person on the right and vice-versa. Clearly this is not working, though.
                 print("sending ", reply, "to", connections[1], "\n")
                 reply = json.dumps(reply)
-                connections[1].sendall(reply.encode())
+                connections[0].sendall(reply.encode())
             elif reply['side'] == "right":
                 print("sending ", reply, "to", connections[0], "\n")
                 reply = json.dumps(reply)
-                connections[0].sendall(reply.encode())
+                connections[1].sendall(reply.encode())
             
 
         except:
