@@ -66,14 +66,13 @@ def threaded_client(conn, side):
         # for testing purposes brandon, have the the client print out all the values
         try:
             # the data recv should be the JSON with values
-            Lock.acquire()
             # i am confused by this part, should the update json be 
             # different than the sync json? of should we treat both dicts the same
             # also if the json is nonsync then does it really matter if the server
             # understands the data? or can we just forward it to the other client?
             jsonData = conn.recv(PACKAGESIZE)
             print("received ", jsonData, "\n")
-            reply = json.dumps(jsonData.decode())
+            reply = json.loads(jsonData.decode())
 
             # side = data['side']
             # paddlePos = data['paddlePos']
@@ -83,10 +82,17 @@ def threaded_client(conn, side):
             if not reply:
                 print("disconnect")
                 break
-            for conns in connections:
-                print("sending ", reply, "to", conns, "\n")
-                conns.sendall(reply.encode())
-            Lock.release()
+            
+            if reply['side'] == "left":
+
+                print("sending ", reply, "to", connections[1], "\n")
+                reply = json.dumps(reply)
+                connections[1].sendall(reply.encode())
+            elif reply['side'] == "right":
+                print("sending ", reply, "to", connections[0], "\n")
+                reply = json.dumps(reply)
+                connections[0].sendall(reply.encode())
+            
 
         except:
             break

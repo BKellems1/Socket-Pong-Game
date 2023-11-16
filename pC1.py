@@ -179,7 +179,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # wait for server to talk back with the clients data that is more updated, then set vals
         #
         values = client.client.recv(1024).decode()
-        json_data = json.loads(json.loads(values))
+        json_data = json.loads(values)
         if sync < json_data['sync']:
             opponentPaddleObj.rect.y = json_data['paddlePos']
             ball.rect.x = json_data['ballPos'][0]
