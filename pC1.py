@@ -11,9 +11,7 @@ import tkinter as tk
 import sys
 import socket
 import json
-import threading
 
-Lock = threading.Lock()
 from assets.code.helperCode import *
 from dummyClient import Client
 
@@ -23,7 +21,7 @@ from dummyClient import Client
 # to suit your needs.
 def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.socket) -> None:
     
-    # Pygame init
+    # Pygame inits
     pygame.mixer.pre_init(44100, -16, 2, 2048)
     pygame.init()
 
@@ -89,6 +87,28 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # where the ball is and the current score.
         # Feel free to change when the score is updated to suit your needs/requirements
 
+        # i dont think the score should be updated here, i think it should only be updated by the client that is ahead
+        # values = {
+        #     'side' : playerPaddle,
+        #     'paddlePos' : playerPaddleObj.rect.y,
+        #     'ballPos' : (ball.rect.x,ball.rect.y),
+        #     'scores' : (lScore,rScore), # this may need to be changed but im not sure
+        #     'sync' : sync
+        # }
+
+        # # send your values
+        # json_data = json.dumps(values) # covnert values to JSON string
+        # client.client.sendall(json_data.encode()) # Send the JSON data to the client
+
+
+        # receive other players position
+        # otherPlayer = client.client.recv(1024).decode()
+        # data = json.loads(otherPlayer)
+
+    
+        # opponentPaddleObj.rect.x = data['paddlePos'][0]
+        # opponentPaddleObj.rect.y = data['paddlePos'][1]
+
 
         
         # =========================================================================================
@@ -103,7 +123,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
                     paddle.rect.y -= paddle.speed
 
         # If the game is over, display the win message
-        if lScore > 9 or rScore > 9:
+        if lScore > 4 or rScore > 4:
             winText = "Player 1 Wins! " if lScore > 4 else "Player 2 Wins! "
             textSurface = winFont.render(winText, False, WHITE, (0,0,0))
             textRect = textSurface.get_rect()
@@ -161,7 +181,32 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # =========================================================================================
         # Send your server update here at the end of the game loop to sync your game with your
         # opponent's game
-        
+
+        # this JSON will also send the sync var
+        # values = {
+        #     'side' : playerPaddle, # this may not be used, not sure yet
+        #     # 'paddlePos' : playerPaddle.Rect,
+        #     # 'ballPos' : ball.Rect,
+        #     'scores' : (lScore,rScore), # this may need to be changed but im not sure
+        #     'sync' : sync
+        # }
+
+        # values = client.client.recv(1024)
+        # json_data = json.loads(values.decode())
+        # if  sync < json_data['sync']:
+        #     playerPaddleObj.rect.y = json_data['paddlePos']
+        #     ball.rect.x = json_data['ballPos'][0]
+        #     ball.rect.y = json_data['ballPos'][1]
+        #     lScore, rScore = json_data['scores']
+
+
+        # json_data = json.dumps(values) # covnert values to JSON string
+        # client.sendall(json_data.encode()) # Send the JSON data to the client
+
+        # wait for server to talk back with the clients data that is more updated, then set vals
+        #
+
+                
         values = {
             'side' : playerPaddle,
             'paddlePos' : playerPaddleObj.rect.y,
@@ -186,10 +231,8 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         lScore, rScore = json_data['scores']
         scoreRect = updateScore(lScore, rScore, screen, WHITE, scoreFont)
         pygame.display.update()
-        
+
         # =========================================================================================
-
-
 
 
 
@@ -205,6 +248,10 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     # errorLabel    A tk label widget, modify it's text to display messages to the user (example below)
     # app           The tk window object, needed to kill the window
     
+    # n = Network()
+    # startPos = n.getPos()
+    # p = player
+
 
     # Create a socket and connect to the server
     # You don't have to use SOCK_STREAM, use what you think is best
@@ -214,20 +261,17 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
 
     client.client.connect(client.addr)
 
-    # client first needs to recieve the data for the screen size
-
-    # Get the required information from your server (screen width, height & player paddle, "left or "right)
-    # client needs to listen to server
-
+   
     # If you have messages you'd like to show the user use the errorLabel widget like so
     errorLabel.config(text=f"Some update text. You input: IP: {ip}, Port: {port}")
     # You may or may not need to call this, depending on how many times you update the label
     errorLabel.update()     
 
+
     # if first then be player 1, so left side
     # What should be sent to the server?
     # position bounce/score
-    jsonData = client.client.recv(1024).decode("utf-8")
+    jsonData = client.client.recv(1024).decode()
     data = json.loads(jsonData)
     screenHeight = data['screenHeight']
     screenWidth = data['screenWidth']
