@@ -21,7 +21,7 @@ import json
 # clients need to be updated based on: score, ball position and enemy position
 
 PACKAGESIZE = 1024 # i dont know if this is a good approach but it prevents maaaggiiiccc numberrss
-server_address = ("10.47.30.138",59417)
+server_address = ("localhost",59417)
 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      # Creating the server
@@ -58,7 +58,6 @@ playerStates = [] # this is used to store and access data from players
 playerNum = 0 # used in the states logic
 
 def threaded_client(conn, side):
-    conn.send(str.encode("Connected!")) # not necessary but i left it since it doesnt hurt anything really
     sendInitData(conn,side)
     # with playerNum_lock:
     #     clientPlayer = playerNum # this will be the slot in playerState hat this thread writes to

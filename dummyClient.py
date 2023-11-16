@@ -17,7 +17,6 @@ class Client:
         self.server = "localhost"
         self.port = 59417
         self.addr = (self.server, self.port)
-        self.connect()
         # self.id = self.connect()
         # print(self.id)
     

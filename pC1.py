@@ -21,7 +21,7 @@ from dummyClient import Client
 # to suit your needs.
 def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.socket) -> None:
     
-    # Pygame inits
+    # Pygame init
     pygame.mixer.pre_init(44100, -16, 2, 2048)
     pygame.init()
 
@@ -88,23 +88,16 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # Feel free to change when the score is updated to suit your needs/requirements
 
         # i dont think the score should be updated here, i think it should only be updated by the client that is ahead
-        # values = {
-        #     'side' : playerPaddle,
-        #     'paddlePos' : playerPaddle.Rect,
-        #     'ballPos' : ball.Rect,
-        #     'scores' : (lScore,rScore) # this may need to be changed but im not sure
-        # }
+        values = {
+            'side' : playerPaddle,
+            'paddlePos' : playerPaddleObj.rect.y,
+            'ballPos' : [ball.rect.x, ball.rect.y],
+            'scores' : [lScore,rScore], # this may need to be changed but im not sure
+            'sync' : sync
+        }
 
-        # json_data = json.dumps(values) # covnert values to JSON string
-        # client.sendall(json_data.encode()) # Send the JSON data to the client
-
-        # otherPlayer = client.recv(1024).decode()
-        # data = json.loads(otherPlayer)
-        # leftPaddle.Rect(data['paddlePos'][0],data['paddlePos'][1])
-        # if data['side'] is 'right':
-        #     leftPaddle = Paddle(pygame.Rect(data['paddlePos'][0],data['paddlePos'][1], paddleWidth, paddleHeight))
-        # else: 
-        #     rightPaddle = Paddle(pygame.Rect(data['paddlePos'][0],data['paddlePos'][1], paddleWidth, paddleHeight))
+        json_data = json.dumps(values) # covnert values to JSON string
+        client.client.send(json_data.encode()) # Send the JSON data to the client
 
         
         # =========================================================================================
@@ -179,16 +172,13 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # opponent's game
 
         # this JSON will also send the sync var
-        # values = {
-        #     'side' : playerPaddle, # this may not be used, not sure yet
-        #     # 'paddlePos' : playerPaddle.Rect,
-        #     # 'ballPos' : ball.Rect,
-        #     'scores' : (lScore,rScore), # this may need to be changed but im not sure
-        #     'sync' : sync
-        # }
-
-        # json_data = json.dumps(values) # covnert values to JSON string
-        # client.sendall(json_data.encode()) # Send the JSON data to the client
+        values = client.client.recv(1024).decode()
+        json_data = json.loads(values)
+        if sync < json_data['sync']:
+            playerPaddleObj.rect.y = json_data['paddlePos']
+            ball.rect.x = json_data['ballPos'][0]
+            ball.rect.y = json_data['ballPos'][1]
+            lScore, rScore = json_data['scores']
 
         # wait for server to talk back with the clients data that is more updated, then set vals
         #
@@ -197,13 +187,6 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
 
 
 
-# def readPos(str):
-#     str = str.split(",")
-#     return int(str[0],str[1])
-
-
-# def makePos(tup):
-#     return str(tup[0] + ", " + str(tup[1]))
 
 
 # This is where you will connect to the server to get the info required to call the game loop.  Mainly
@@ -218,10 +201,6 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     # errorLabel    A tk label widget, modify it's text to display messages to the user (example below)
     # app           The tk window object, needed to kill the window
     
-    # n = Network()
-    # startPos = n.getPos()
-    # p = player
-
 
     # Create a socket and connect to the server
     # You don't have to use SOCK_STREAM, use what you think is best
@@ -229,14 +208,9 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     client.server = ip
     client.port = port
 
-    # client.client.connect(client.addr)
+    client.client.connect(client.addr)
 
-    # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # client.connect((ip,int(port)))
-    # client.send(str.encode("joined")) # tell the server that a client has joined
     # client first needs to recieve the data for the screen size
-    # game_settings = client.recv()
 
     # Get the required information from your server (screen width, height & player paddle, "left or "right)
     # client needs to listen to server
@@ -246,13 +220,10 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     # You may or may not need to call this, depending on how many times you update the label
     errorLabel.update()     
 
-    # startPos = readPos(client.getPos())
-
-
     # if first then be player 1, so left side
     # What should be sent to the server?
     # position bounce/score
-    jsonData = client.client.recv(1024).decode()
+    jsonData = client.client.recv(1024).decode("utf-8")
     data = json.loads(jsonData)
     screenHeight = data['screenHeight']
     screenWidth = data['screenWidth']
