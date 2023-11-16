@@ -88,16 +88,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # Feel free to change when the score is updated to suit your needs/requirements
 
         # i dont think the score should be updated here, i think it should only be updated by the client that is ahead
-        values = {
-            'side' : playerPaddle,
-            'paddlePos' : playerPaddleObj.rect.y,
-            'ballPos' : [ball.rect.x, ball.rect.y],
-            'scores' : [lScore,rScore], # this may need to be changed but im not sure
-            'sync' : sync
-        }
 
-        json_data = json.dumps(values) # covnert values to JSON string
-        client.client.send(json_data.encode()) # Send the JSON data to the client
 
         
         # =========================================================================================
@@ -170,19 +161,28 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # =========================================================================================
         # Send your server update here at the end of the game loop to sync your game with your
         # opponent's game
+        values = {
+            'side' : playerPaddle,
+            'paddlePos' : playerPaddleObj.rect.y,
+            'ballPos' : [ball.rect.x, ball.rect.y],
+            'scores' : [lScore,rScore], # this may need to be changed but im not sure
+            'sync' : sync
+        }
 
+        json_data = json.dumps(values) # covnert values to JSON string
+        client.client.send(json_data.encode()) # Send the JSON data to the client
         # this JSON will also send the sync var
+
+
+        # wait for server to talk back with the clients data that is more updated, then set vals
+        #
         values = client.client.recv(1024).decode()
-        json_data = json.loads(values)
+        json_data = json.loads(json.loads(values))
         if sync < json_data['sync']:
             playerPaddleObj.rect.y = json_data['paddlePos']
             ball.rect.x = json_data['ballPos'][0]
             ball.rect.y = json_data['ballPos'][1]
             lScore, rScore = json_data['scores']
-
-        # wait for server to talk back with the clients data that is more updated, then set vals
-        #
-
         # =========================================================================================
 
 

@@ -19,11 +19,12 @@ import json
 
 
 # clients need to be updated based on: score, ball position and enemy position
+Lock = threading.Lock()
 
 PACKAGESIZE = 1024 # i dont know if this is a good approach but it prevents maaaggiiiccc numberrss
 server_address = ("localhost",59417)
 
-
+connections = []
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      # Creating the server
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    # Working on localhost need this
 
@@ -52,52 +53,43 @@ def sendInitData(conn, side):
     conn.sendall(json_data.encode())
 
 
-playerNum_lock = threading.Lock()
 
-playerStates = [] # this is used to store and access data from players
-playerNum = 0 # used in the states logic
 
 def threaded_client(conn, side):
+    if conn not in connections:
+       connections.append(conn)
     sendInitData(conn,side)
-    # with playerNum_lock:
-    #     clientPlayer = playerNum # this will be the slot in playerState hat this thread writes to
-    #     playerNum += 1
-    
-    # playerStates.append([]) # create a spot in playerStates to store their data
 
-
-
-    reply = ""
     while True: # server loop
         # when a client connects, assign the first one to connect as player 1, send them back the game settings, send back a json dictionary 
         # this dict will have (screen width, height & player paddle, "left or "right) in it. 
         # for testing purposes brandon, have the the client print out all the values
         try:
             # the data recv should be the JSON with values
-            # data = conn.recv(PACKAGESIZE) # larger size = more time to recv info
-            # reply = data.decode("utf-8")
 
             # i am confused by this part, should the update json be 
             # different than the sync json? of should we treat both dicts the same
             # also if the json is nonsync then does it really matter if the server
             # understands the data? or can we just forward it to the other client?
-
+            Lock.acquire()
             jsonData = conn.recv(PACKAGESIZE)
-            data = json.loads(jsonData.decode())
+            print("received ", jsonData, "\n")
+            reply = json.dumps(jsonData.decode())
+
             # side = data['side']
             # paddlePos = data['paddlePos']
             # ballPos = data['ballPos']
             # scores = data['scores']
 
-
-            if not data:
+            if not reply:
                 print("disconnect")
                 break
+            print("sending ", reply, "to", conn, "\n")
+            for conns in connections:
+                conns.sendall(reply.encode())
+            
+            Lock.release()
 
-            # with playerNum_lock: # this should only be reached if there is data sent
-            #     playerStates[clientPlayer] = data
-
-            # conn.sendall(str.encode(reply))
         except:
             break
 
@@ -109,15 +101,8 @@ def threaded_client(conn, side):
 
 
 
-while True: # coninuosly look for connections
-    # clientConn, clientAddress = server.accept()
-    # print("Connected to: ", clientAddress)
-    # # start_new_thread(threaded_client,(clientConn,))
-    # client_thread = threading.Thread(target=threaded_client, args=(clientConn,))
-    # client_thread.start()
+while True: # continuously look for connections
 
-
-    # maybe change these later so that more players can join
     # Accept the first player as the left player
     left_player_conn, left_player_address = server.accept()
     print("Left Player Connected to: ", left_player_address)
@@ -136,13 +121,7 @@ while True: # coninuosly look for connections
 
 
 
-# this is the potential code for having many client games
-# def start_new_game(conn):
-#     # Start a new game thread for each client
-#     player_position = 'Left' if len(games) % 2 == 0 else 'Right'
-#     game_thread = threading.Thread(target=threaded_client, args=(conn, player_position))
-#     games.append(game_thread)
-#     game_thread.start()
+
 
 
 # while True:
