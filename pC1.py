@@ -259,8 +259,8 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     # You don't have to use SOCK_STREAM, use what you think is best
     client = Client()
     client.server = ip
-    client.port = port
-
+    client.port = int(port)
+    client.addr = (client.server, client.port)
     client.client.connect(client.addr)
 
    
