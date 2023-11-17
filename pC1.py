@@ -132,7 +132,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         else:
 
             # ==== Ball Logic =====================================================================
-            ball.updatePos()
+            # ball.updatePos()
 
             # If the ball makes it past the edge of the screen, update score, etc.
             if ball.rect.x > screenWidth:
@@ -172,7 +172,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         pygame.draw.rect(screen, WHITE, bottomWall)
         scoreRect = updateScore(lScore, rScore, screen, WHITE, scoreFont)
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(120)
         
         # This number should be synchronized between you and your opponent.  If your number is larger
         # then you are ahead of them in time, if theirs is larger, they are ahead of you, and you need to
@@ -231,6 +231,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             ball.updatePos()
             lScore, rScore = json_data['scores']
             scoreRect = updateScore(lScore, rScore, screen, WHITE, scoreFont)
+            sync = json_data['sync']
         pygame.display.update()
 
         # =========================================================================================
