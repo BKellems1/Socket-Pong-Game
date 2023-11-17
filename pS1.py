@@ -21,7 +21,7 @@ import json
 # clients need to be updated based on: score, ball position and enemy position
 
 PACKAGESIZE = 1024 # i dont know if this is a good approach but it prevents maaaggiiiccc numberrss
-server_address = ("localhost",59417)
+server_address = ("0.0.0.0",59417)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)      # Creating the server
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    # Working on localhost need this
