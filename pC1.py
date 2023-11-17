@@ -123,7 +123,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
                     paddle.rect.y -= paddle.speed
 
         # If the game is over, display the win message
-        if lScore > 4 or rScore > 4:
+        if lScore > 50 or rScore > 50:
             winText = "Player 1 Wins! " if lScore > 4 else "Player 2 Wins! "
             textSurface = winFont.render(winText, False, WHITE, (0,0,0))
             textRect = textSurface.get_rect()
@@ -224,12 +224,13 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         values = client.client.recv(1024).decode()
         json_data = json.loads(values)
         # Note: Below doesn't actually update the game as anticipated. :(
-        opponentPaddleObj.rect.y = json_data['paddlePos']
-        ball.rect.x = json_data['ballPos'][0]
-        ball.rect.y = json_data['ballPos'][1]
-        ball.updatePos()
-        lScore, rScore = json_data['scores']
-        scoreRect = updateScore(lScore, rScore, screen, WHITE, scoreFont)
+        if json_data['sync'] >= sync:
+            opponentPaddleObj.rect.y = json_data['paddlePos']
+            ball.rect.x = json_data['ballPos'][0]
+            ball.rect.y = json_data['ballPos'][1]
+            ball.updatePos()
+            lScore, rScore = json_data['scores']
+            scoreRect = updateScore(lScore, rScore, screen, WHITE, scoreFont)
         pygame.display.update()
 
         # =========================================================================================
